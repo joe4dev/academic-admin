@@ -149,15 +149,6 @@ def parse_bibtex_entry(entry, pub_dir="publication", featured=False, overwrite=F
     if not dry_run:
         Path(bundle_path).mkdir(parents=True, exist_ok=True)
 
-    # Save citation file.
-    log.info(f"Saving citation to {cite_path}")
-    db = BibDatabase()
-    db.entries = [entry]
-    writer = BibTexWriter()
-    if not dry_run:
-        with open(cite_path, "w", encoding="utf-8") as f:
-            f.write(writer.write(db))
-
     # Prepare YAML front matter for Markdown file.
     frontmatter = ["---"]
     frontmatter.append(f'title: "{clean_bibtex_str(entry["title"])}"')
@@ -230,6 +221,18 @@ def parse_bibtex_entry(entry, pub_dir="publication", featured=False, overwrite=F
     except IOError:
         log.error("Could not save file.")
 
+    # Remove abstract from citation file.
+    if 'abstract' in entry:
+        del entry['abstract']
+
+    # Save citation file.
+    log.info(f"Saving citation to {cite_path}")
+    db = BibDatabase()
+    db.entries = [entry]
+    writer = BibTexWriter()
+    if not dry_run:
+        with open(cite_path, "w", encoding="utf-8") as f:
+            f.write(writer.write(db))
 
 def slugify(s, lower=True):
     bad_symbols = (".", "_", ":")  # Symbols to replace with hyphen delimiter.
